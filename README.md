@@ -55,6 +55,7 @@ pip install .
 ## INI-файл с учётными данными
 
 Зарегистрируйте приложение на OAuth NIC.RU для использования плагина - https://www.nic.ru/manager/oauth.cgi?step=oauth.app_list
+
 Создайте файл (например `/etc/letsencrypt/nicru.ini`) и установите права `600`:
 
 ```bash
