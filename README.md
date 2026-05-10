@@ -54,6 +54,7 @@ pip install .
 
 ## INI-файл с учётными данными
 
+Зарегистрируйте приложение на OAuth NIC.RU для использования плагина - https://www.nic.ru/manager/oauth.cgi?step=oauth.app_list
 Создайте файл (например `/etc/letsencrypt/nicru.ini`) и установите права `600`:
 
 ```bash
@@ -67,13 +68,37 @@ chmod 600 /etc/letsencrypt/nicru.ini
 
 | Ключ | Обязательный | Назначение |
 |---|---|---|
-| `ms_dns_nicru_client_id` | ✅ | Идентификатор OAuth-приложения, зарегистрированного на NIC.RU |
-| `ms_dns_nicru_client_secret` | ✅ | Секрет OAuth-приложения |
+| `ms_dns_nicru_client_id` | ✅ | Идентификатор (Логин) OAuth-приложения, зарегистрированного на NIC.RU |
+| `ms_dns_nicru_client_secret` | ✅ | Секрет (Пароль) OAuth-приложения |
 | `ms_dns_nicru_username` | ✅ | Логин договора (например `123/NIC-REG`) |
 | `ms_dns_nicru_password` | ✅ | Административный или технический пароль от договора |
 | `ms_dns_nicru_scope` | ✅ | Область доступа токена (например `.+:/dns-master/.+`) |
 | `ms_dns_nicru_service` | ✅ | Идентификатор услуги DNS-master |
 | `ms_dns_nicru_zone` | ✅ | Имя зоны в Punycode (например `example.com`) |
+
+### Параметр `ms_dns_nicru_scope` — область доступа токена
+
+Scope задаётся в формате `<HTTP-методы>:<regex-путь>` (элементы списка разделены пробелами).
+Путь всегда начинается с `/dns-master/`. Методы: `GET`, `PUT`, `POST`, `DELETE` (можно комбинировать через `|`).
+
+Плагину требуются права: `GET` (чтение записей), `PUT` (добавление), `DELETE` (удаление), `POST` (commit).
+
+```ini
+# 1. Только к одной зоне на одной услуге — САМЫЙ БЕЗОПАСНЫЙ
+ms_dns_nicru_scope = (GET|PUT|POST|DELETE):/dns-master/services/MYSERVICE/zones/example.com(/.+)?
+
+# 2. Ко всем зонам на одной услуге
+ms_dns_nicru_scope = (GET|PUT|POST|DELETE):/dns-master/services/MYSERVICE/.+
+
+# 3. Полный доступ ко всем услугам — УНИВЕРСАЛЬНЫЙ
+ms_dns_nicru_scope = .+:/dns-master/.+
+
+# 4. Полный доступ — явная запись методов вместо .+
+ms_dns_nicru_scope = (GET|PUT|POST|DELETE):/dns-master/.+
+```
+
+> Рекомендуется **вариант 1** для продакшена — токен работает только с одной зоной.
+> **Вариант 3** — если несколько зон или не хотите прописывать каждую отдельно.
 
 ### Пример INI-файла
 
