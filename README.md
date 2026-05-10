@@ -1,6 +1,7 @@
 # ms-certbot-nicru
 
 Новая реализация плагина Certbot для автоматического получения SSL-сертификатов через DNS-01 challenge на NIC.RU.
+Весь функционал написан с нуля. Основная идея взята с shizacat/certbot_dns_nicru.
 
 ## Возможности
 
@@ -9,12 +10,12 @@
 - OAuth2 аутентификация по протоколу `password`
 - WildCard-сертификаты (`*.example.com`)
 
-## Отличия от старой версии (dns_nicru/sh_nic_api)
+## Отличия от старой версии (certbot_dns_nicru/sh_nic_api)
 
 | Старая версия | Новая версия |
 |---|---|
-| Библиотека `sh_nic_api` (нет поддержки SRV) | Собственный клиент на `requests` + `xml.etree.ElementTree` |
-| Падает при чтении зоны с SRV-записями | SRV парсится корректно |
+| Библиотека `sh_nic_api` | Собственный клиент на `requests` + `xml.etree.ElementTree` |
+| Падает при удалении записей зоны при наличии SRV-записей | SRV парсится корректно |
 | Привязана к старому `certbot` API | Совместима с `certbot >= 2.0` |
 
 ---
@@ -25,7 +26,7 @@
 
 ```bash
 # Перейти в папку проекта
-cd /root/ms-certbot-nic/
+cd ./ms-certbot-nic/
 
 # Влить пакет в виртуальное окружение certbot
 pipx inject certbot .
@@ -37,6 +38,10 @@ certbot plugins | grep ms-dns-nicru
 ### Если certbot установлен через pip (обычный способ)
 
 ```bash
+# Перейти в папку проекта
+cd ./ms-certbot-nic/
+
+# Установить плагин в виртуальное окружение certbot
 pip install .
 ```
 
@@ -82,7 +87,7 @@ chmod 600 /etc/letsencrypt/nicru.ini
 Scope задаётся в формате `<HTTP-методы>:<regex-путь>` (элементы списка разделены пробелами).
 Путь всегда начинается с `/dns-master/`. Методы: `GET`, `PUT`, `POST`, `DELETE` (можно комбинировать через `|`).
 
-Плагину требуются права: `GET` (чтение записей), `PUT` (добавление), `DELETE` (удаление), `POST` (commit).
+Плагину требуются права: `GET` (чтение), `PUT` (добавление), `DELETE` (удаление), `POST` (подтверждение).
 
 ```ini
 # 1. Только к одной зоне на одной услуге — САМЫЙ БЕЗОПАСНЫЙ
@@ -97,7 +102,7 @@ ms_dns_nicru_scope = .+:/dns-master/.+
 # 4. Полный доступ — явная запись методов вместо .+
 ms_dns_nicru_scope = (GET|PUT|POST|DELETE):/dns-master/.+
 ```
-
+> Обязательно измените **MYSERVICE** и **example.com** на свои данные — название сервиса и домен.
 > Рекомендуется **вариант 1** для продакшена — токен работает только с одной зоной.
 > **Вариант 3** — если несколько зон или не хотите прописывать каждую отдельно.
 
@@ -105,12 +110,12 @@ ms_dns_nicru_scope = (GET|PUT|POST|DELETE):/dns-master/.+
 
 ```ini
 # NIC.RU credentials INI file
-ms_dns_nicru_client_id = 12345
-ms_dns_nicru_client_secret = abcdefghijklmnop
-ms_dns_nicru_username = 123/NIC-REG
+ms_dns_nicru_client_id = 1a2b3c4d5e6f
+ms_dns_nicru_client_secret = 1a2b3c4d5e6f
+ms_dns_nicru_username = 123456/NIC-D
 ms_dns_nicru_password = mypassword
 ms_dns_nicru_scope = .+:/dns-master/.+
-ms_dns_nicru_service = MYSERVICE
+ms_dns_nicru_service = SV123456
 ms_dns_nicru_zone = example.com
 ```
 
