@@ -168,7 +168,7 @@ def _parse_one_record(rr_el: Element) -> Optional[DnsRecord]:
     elif rtype == "TXT":
         txt = rr_el.find("txt")
         if txt is not None:
-            rec.strings = [s.strip() if s.text else "" for s in txt.findall("string")]
+            rec.strings = [s.text.strip() if s.text else "" for s in txt.findall("string")]
 
     elif rtype == "SRV":
         srv = rr_el.find("srv")
@@ -251,11 +251,11 @@ def build_add_records_xml(records: list[DnsRecord]) -> str:
     for rec in records:
         rr = SubElement(rr_list, "rr")
         SubElement(rr, "name").text = rec.name
-        SubElement(rr, "type").text = rec.rr_type
 
         if rec.ttl > 0:
             SubElement(rr, "ttl").text = str(rec.ttl)
 
+        SubElement(rr, "type").text = rec.rr_type
         _build_type_specific(rr, rec)
 
     return _tostring(root)
